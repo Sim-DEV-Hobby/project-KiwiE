@@ -8,17 +8,24 @@ import uvicorn
 app = FastAPI()
 DATA_FILE = "users.json"
 
+import requests
+
+BIN_ID = "6a414163f5f4af5e293da1c8"
+API_KEY = "$2a$10$fXGoPLJp6ExOMyOpr/xpA.xKugc/zuKkxXQSP48WYQgvpRUD9HE.q"
+
 def find_user_in_file(username: str):
-    if not os.path.exists(DATA_FILE):
-        return None
-    with open(DATA_FILE, "r", encoding="utf-8") as f:
-        try:
-            users_list = json.load(f)
+    # Fetch the live, permanent JSON data from the cloud
+    url = f"https://jsonbin.io/{BIN_ID}/latest"
+    headers = {"X-Master-Key": API_KEY}
+    try:
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            users_list = response.json().get("record", [])
             for user in users_list:
                 if user.get("username") == username:
                     return user
-        except json.JSONDecodeError:
-            return None
+    except Exception as e:
+        print(f"Cloud Read Error: {e}")
     return None
 
 BASE_TABLE = [0x1A, 0x2B, 0x3C, 0x4D, 0x5E, 0x6F, 0x70, 0x81]
