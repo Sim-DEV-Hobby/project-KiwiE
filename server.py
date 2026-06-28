@@ -1,5 +1,6 @@
 import os
 import json
+import random  # Added for dynamic algorithm picking
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 import uvicorn
@@ -20,7 +21,6 @@ def find_user_in_file(username: str):
             return None
     return None
 
-# --- THE 5 ENCRYPTION ALGORITHMS ---
 BASE_TABLE = [0x1A, 0x2B, 0x3C, 0x4D, 0x5E, 0x6F, 0x70, 0x81]
 
 def encrypt_algo_0(b_arr): return bytes([b ^ BASE_TABLE[i % 8] ^ i for i, b in enumerate(b_arr)])
@@ -49,45 +49,40 @@ def encrypt_algo_4(b_arr):
 
 ENCRYPTION_FUNCTIONS = {0: encrypt_algo_0, 1: encrypt_algo_1, 2: encrypt_algo_2, 3: encrypt_algo_3, 4: encrypt_algo_4}
 
-# --- ENDPOINTS ---
-
+# FIXED: Removed algo_index from the incoming payload contract
 class ProfileRequest(BaseModel):
-    algo_index: int
     username: str
-    hwid: str  # Client must pass their hardware ID
+    hwid: str  
 
 @app.post("/get_payload")
 def get_payload(request: ProfileRequest):
-    if request.algo_index not in ENCRYPTION_FUNCTIONS:
-        raise HTTPException(status_code=400, detail="Invalid algo_index.")
-
-    # 1. Fetch user account data 
     user = find_user_in_file(request.username)
     if not user:
         raise HTTPException(status_code=404, detail="User account profile not found.")
 
-    # 2. Enforce HWID Protection Check
     if user["hwid"] != request.hwid:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, 
             detail="Hardware ID spoofing or mismatch detected. Access denied."
         )
 
-    # 3. Package data into the "A|B|C|D" pipe format
+    # 1. Randomly pick an algorithm matrix index (0 to 4)
+    selected_algo = random.choice(list(ENCRYPTION_FUNCTIONS.keys()))
+
+    # 2. Package data and run encryption
     raw_profile_string = f"{user['username']}|{user['subscription_plan']}|{user['hwid']}|{user['expires_at']}"
-    
-    # 4. Encrypt the profile package
     raw_bytes = raw_profile_string.encode('utf-8')
-    encrypt_func = ENCRYPTION_FUNCTIONS[request.algo_index]
+    
+    encrypt_func = ENCRYPTION_FUNCTIONS[selected_algo]
     ciphertext_bytes = encrypt_func(raw_bytes)
 
-    # 5. Build network data payload output
-    final_payload_string = f"{request.algo_index}|{ciphertext_bytes.hex()}"
+    # 3. Output payload string starts with the designated algorithm type character
+    final_payload_string = f"{selected_algo}|{ciphertext_bytes.hex()}"
     return {"payload": final_payload_string}
 
 @app.get("/")
 def read_root():
-    return {"status": "online", "engine": "FastAPI HWID Secure Routing Engine"}
+    return {"status": "online"}
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    
