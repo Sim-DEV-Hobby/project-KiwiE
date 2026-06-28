@@ -15,7 +15,7 @@ API_KEY = "$2a$10$fXGoPLJp6ExOMyOpr/xpA.xKugc/zuKkxXQSP48WYQgvpRUD9HE.q"
 
 def find_user_in_file(username: str):
     # This explicit string concatenation prevents any variable bleeding into the host domain name
-    base_api_url = "https://jsonbin.io"
+    base_api_url = "https://jsonbin.io/"
     url = base_api_url + str(BIN_ID) + "/latest"
     
     headers = {"X-Master-Key": API_KEY}
