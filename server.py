@@ -20,7 +20,7 @@ def find_user_in_file(username: str):
     try:
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
-            users_list = response.json().get("record", [])
+            users_list = response.json() 
             for user in users_list:
                 if user.get("username") == username:
                     return user
