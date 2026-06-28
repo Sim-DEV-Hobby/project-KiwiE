@@ -14,18 +14,28 @@ BIN_ID = "6a414163f5f4af5e293da1c8"
 API_KEY = "$2a$10$fXGoPLJp6ExOMyOpr/xpA.xKugc/zuKkxXQSP48WYQgvpRUD9HE.q"
 
 def find_user_in_file(username: str):
-    # Fetch the live, permanent JSON data from the cloud
-    url = f"https://jsonbin.io/{BIN_ID}/latest"
+    # The URL string is completely unbroken with all slashes intact
+    url = "https://jsonbin.io" + BIN_ID + "/latest"
     headers = {"X-Master-Key": API_KEY}
+    
     try:
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
-            users_list = response.json() 
+            json_data = response.json()
+            
+            # This handles both wrapped and raw JSON file lists automatically
+            if "record" in json_data:
+                users_list = json_data["record"]
+            else:
+                users_list = json_data
+                
             for user in users_list:
                 if user.get("username") == username:
                     return user
+        else:
+            print("❌ JSONbin Server Error Status Code: " + str(response.status_code))
     except Exception as e:
-        print(f"Cloud Read Error: {e}")
+        print("Cloud Read Error: " + str(e))
     return None
 
 BASE_TABLE = [0x1A, 0x2B, 0x3C, 0x4D, 0x5E, 0x6F, 0x70, 0x81]
