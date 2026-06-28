@@ -1,0 +1,14 @@
+[
+    {
+        "username": "keshav_admin",
+        "subscription_plan": "premium",
+        "hwid": "HWID-9923-XF81",
+        "expires_at": "2027-12-31"
+    },
+    {
+        "username": "test_user",
+        "subscription_plan": "free",
+        "hwid": "HWID-1102-LK44",
+        "expires_at": "2026-08-15"
+    }
+]
