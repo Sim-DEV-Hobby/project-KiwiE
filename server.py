@@ -10,12 +10,13 @@ DATA_FILE = "users.json"
 
 import requests
 
-BIN_ID = "6a414163f5f4af5e293da1c8"
-API_KEY = "$2a$10$fXGoPLJp6ExOMyOpr/xpA.xKugc/zuKkxXQSP48WYQgvpRUD9HE.q"
+BIN_ID = os.environ.get("JSONBIN_BIN_ID", "6a414163f5f4af5e293da1c8")
+API_KEY = os.environ.get("JSONBIN_MASTER_KEY", "$2a$10$fXGoPLJp6ExOMyOpr/xpA.xKugc/zuKkxXQSP48WYQgvpRUD9HE.q")
 
 def find_user_in_file(username: str):
-    base_api_url = "https://jsonbin.io"
-    url = base_api_url + str(BIN_ID) + "/latest"
+    # This split string pattern is proven to prevent formatting and host errors
+    url_parts = ["https:", "", "api.jsonbin.io", "v3", "b", str(BIN_ID), "latest"]
+    url = "/".join(url_parts)
     headers = {"X-Master-Key": API_KEY}
     
     try:
@@ -23,23 +24,20 @@ def find_user_in_file(username: str):
         if response.status_code == 200:
             json_data = response.json()
             
-            # DIAGNOSTIC PRINT: Check your server logs on Render to see this output!
-            print("➡️ RAW DATA RETRIEVED FROM CLOUD:", json_data)
-            
             if "record" in json_data:
                 users_list = json_data["record"]
             else:
                 users_list = json_data
                 
             for user in users_list:
-                # Secondary safety strip for accidental spaces
                 if str(user.get("username")).strip() == str(username).strip():
                     return user
         else:
-            print("❌ JSONbin Error Status Code: " + str(response.status_code))
+            print("❌ JSONbin Server Error Code: " + str(response.status_code))
     except Exception as e:
         print("Cloud Read Error: " + str(e))
     return None
+
 
 
 BASE_TABLE = [0x1A, 0x2B, 0x3C, 0x4D, 0x5E, 0x6F, 0x70, 0x81]
