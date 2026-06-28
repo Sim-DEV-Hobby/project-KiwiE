@@ -14,15 +14,17 @@ BIN_ID = "6a414163f5f4af5e293da1c8"
 API_KEY = "$2a$10$fXGoPLJp6ExOMyOpr/xpA.xKugc/zuKkxXQSP48WYQgvpRUD9HE.q"
 
 def find_user_in_file(username: str):
-    # This explicit string concatenation prevents any variable bleeding into the host domain name
-    base_api_url = "https://jsonbin.io/"
+    base_api_url = "https://jsonbin.io"
     url = base_api_url + str(BIN_ID) + "/latest"
-    
     headers = {"X-Master-Key": API_KEY}
+    
     try:
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
             json_data = response.json()
+            
+            # DIAGNOSTIC PRINT: Check your server logs on Render to see this output!
+            print("➡️ RAW DATA RETRIEVED FROM CLOUD:", json_data)
             
             if "record" in json_data:
                 users_list = json_data["record"]
@@ -30,7 +32,8 @@ def find_user_in_file(username: str):
                 users_list = json_data
                 
             for user in users_list:
-                if user.get("username") == username:
+                # Secondary safety strip for accidental spaces
+                if str(user.get("username")).strip() == str(username).strip():
                     return user
         else:
             print("❌ JSONbin Error Status Code: " + str(response.status_code))
