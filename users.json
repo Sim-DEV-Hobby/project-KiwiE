@@ -10,5 +10,11 @@
         "subscription_plan": "free",
         "hwid": "HWID-1102-LK44",
         "expires_at": "2026-08-15"
+    },
+    {
+        "username": "gauri",
+        "subscription_plan": "premium",
+        "hwid": "HWID-1102-0000",
+        "expires_at": "2026-08-15"
     }
 ]
